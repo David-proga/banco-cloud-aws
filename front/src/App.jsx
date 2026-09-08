@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import './App.css'; // Importamos los nuevos estilos
 
-// Configuración de Cognito (Reemplaza con tus datos reales)
 Amplify.configure({
   Auth: {
     Cognito: {
-      userPoolId: 'us-east-1_7YKgTB0ZV',
-      userPoolClientId: '5811olh3c1jh3b9lmq5qr5rmj2',
+      userPoolId: 'us-east-1_TU_USER_POOL_ID', // Asegúrate de reponer tu ID
+      userPoolClientId: 'TU_CLIENT_ID',       // Asegúrate de reponer tu Client ID
       region: 'us-east-1',
     }
   }
@@ -39,21 +39,15 @@ function BancoCloudApp({ user, signOut }) {
       const res = await fetch(`${API_URL}/prestamos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email_cliente: emailUsuario,
-          monto: parseFloat(monto),
-          plazo_meses: parseInt(plazo)
-        })
+        body: JSON.stringify({ email_cliente: emailUsuario, monto: parseFloat(monto), plazo_meses: parseInt(plazo) })
       });
       if (res.ok) {
-        alert('¡Solicitud de crédito enviada con éxito!');
+        alert('¡Solicitud enviada con éxito!');
         setMonto('');
         setPlazo('');
         cargarMisCreditos();
       }
-    } catch (error) {
-      console.error('Error al solicitar crédito:', error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const cargarMisCreditos = async () => {
@@ -61,9 +55,7 @@ function BancoCloudApp({ user, signOut }) {
       const res = await fetch(`${API_URL}/prestamos/mis-creditos/${emailUsuario}`);
       const data = await res.json();
       setMisCreditos(data);
-    } catch (error) {
-      console.error('Error al cargar créditos:', error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const cargarCarteraAdmin = async () => {
@@ -71,9 +63,7 @@ function BancoCloudApp({ user, signOut }) {
       const res = await fetch(`${API_URL}/prestamos`);
       const data = await res.json();
       setCarteraTotal(data);
-    } catch (error) {
-      console.error('Error al cargar la cartera:', error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const evaluarPrestamo = async (id, nuevoEstado) => {
@@ -84,132 +74,97 @@ function BancoCloudApp({ user, signOut }) {
         body: JSON.stringify({ estado: nuevoEstado })
       });
       if (res.ok) {
-        alert(`Préstamo #${id} actualizado a: ${nuevoEstado}`);
         cargarCarteraAdmin();
       }
-    } catch (error) {
-      console.error('Error al evaluar el préstamo:', error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   return (
-    <div style={{ padding: '30px', fontFamily: 'Arial, sans-serif', maxWidth: '900px', margin: '0 auto' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #eaeaea', paddingBottom: '15px', marginBottom: '25px' }}>
-        <h2>Banco Cloud — Portal {isAdmin ? 'Administrador' : 'de Clientes'}</h2>
-        <div>
-          <span style={{ marginRight: '15px' }}>Usuario: <b>{emailUsuario}</b></span>
-          <button onClick={signOut} style={{ padding: '8px 14px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            Cerrar Sesión
-          </button>
+    <div className="container">
+      <header className="header">
+        <h2>Banco Cloud <span style={{color: '#6b7280', fontSize: '18px'}}>| {isAdmin ? 'Panel Administrativo' : 'Portal de Clientes'}</span></h2>
+        <div className="user-info">
+          <span><b>{emailUsuario}</b></span>
+          <button onClick={signOut} className="btn-logout">Cerrar Sesión</button>
         </div>
       </header>
 
       {!isAdmin && (
-        <div>
-          <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', marginBottom: '30px', border: '1px solid #ddd' }}>
+        <>
+          <div className="card">
             <h3>Simular y Solicitar Crédito</h3>
-            <form onSubmit={solicitarCredito} style={{ display: 'flex', gap: '15px', flexDirection: 'column' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Monto Solicitado ($):</label>
-                <input 
-                  type="number" 
-                  value={monto} 
-                  onChange={(e) => setMonto(e.target.value)} 
-                  required 
-                  style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                />
+            <form onSubmit={solicitarCredito}>
+              <div className="form-group">
+                <label>Monto Solicitado ($)</label>
+                <input type="number" className="form-input" value={monto} onChange={(e) => setMonto(e.target.value)} required placeholder="Ej: 15000000" />
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Plazo (Meses):</label>
-                <input 
-                  type="number" 
-                  value={plazo} 
-                  onChange={(e) => setPlazo(e.target.value)} 
-                  required 
-                  style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                />
+              <div className="form-group">
+                <label>Plazo (Meses)</label>
+                <input type="number" className="form-input" value={plazo} onChange={(e) => setPlazo(e.target.value)} required placeholder="Ej: 60" />
               </div>
-              <button type="submit" style={{ padding: '10px', background: '#1890ff', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
-                Enviar Solicitud
-              </button>
+              <button type="submit" className="btn-primary">Enviar Solicitud al Banco</button>
             </form>
           </div>
 
-          <h3>Mis Préstamos Solicitados</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#f0f0f0', borderBottom: '2px solid #ddd' }}>
-                <th style={{ padding: '10px' }}>ID</th>
-                <th style={{ padding: '10px' }}>Monto</th>
-                <th style={{ padding: '10px' }}>Plazo (Meses)</th>
-                <th style={{ padding: '10px' }}>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {misCreditos.length === 0 ? (
-                <tr><td colSpan="4" style={{ padding: '15px', textAlign: 'center' }}>No tienes créditos registrados.</td></tr>
-              ) : (
-                misCreditos.map((c) => (
-                  <tr key={c.id_prestamo} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '10px' }}>{c.id_prestamo}</td>
-                    <td style={{ padding: '10px' }}>${Number(c.monto).toLocaleString()}</td>
-                    <td style={{ padding: '10px' }}>{c.plazo_meses}</td>
-                    <td style={{ padding: '10px', fontWeight: 'bold', color: c.estado === 'Aprobado' ? 'green' : c.estado === 'Rechazado' ? 'red' : 'orange' }}>
-                      {c.estado}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+          <h3 style={{color: '#111827', marginBottom: '15px'}}>Mis Préstamos</h3>
+          <div className="table-container">
+            <table className="modern-table">
+              <thead>
+                <tr><th>ID</th><th>Monto</th><th>Plazo</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                {misCreditos.length === 0 ? (
+                  <tr><td colSpan="4" style={{textAlign: 'center', color: '#6b7280'}}>Sin solicitudes registradas.</td></tr>
+                ) : (
+                  misCreditos.map((c) => (
+                    <tr key={c.id_prestamo}>
+                      <td>#{c.id_prestamo}</td>
+                      <td>${Number(c.monto).toLocaleString()}</td>
+                      <td>{c.plazo_meses} meses</td>
+                      <td><span className={`badge badge-${c.estado}`}>{c.estado}</span></td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {isAdmin && (
-        <div>
-          <h3>Cartera Global de Solicitudes (Panel Administrativo)</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#f0f0f0', borderBottom: '2px solid #ddd' }}>
-                <th style={{ padding: '10px' }}>ID</th>
-                <th style={{ padding: '10px' }}>Cliente</th>
-                <th style={{ padding: '10px' }}>Monto</th>
-                <th style={{ padding: '10px' }}>Plazo</th>
-                <th style={{ padding: '10px' }}>Estado</th>
-                <th style={{ padding: '10px' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {carteraTotal.length === 0 ? (
-                <tr><td colSpan="6" style={{ padding: '15px', textAlign: 'center' }}>No hay solicitudes en la cartera.</td></tr>
-              ) : (
-                carteraTotal.map((item) => (
-                  <tr key={item.id_prestamo} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '10px' }}>{item.id_prestamo}</td>
-                    <td style={{ padding: '10px' }}>{item.email_cliente}</td>
-                    <td style={{ padding: '10px' }}>${Number(item.monto).toLocaleString()}</td>
-                    <td style={{ padding: '10px' }}>{item.plazo_meses} meses</td>
-                    <td style={{ padding: '10px', fontWeight: 'bold', color: item.estado === 'Aprobado' ? 'green' : item.estado === 'Rechazado' ? 'red' : 'orange' }}>
-                      {item.estado}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      {item.estado === 'Pendiente' && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button onClick={() => evaluarPrestamo(item.id_prestamo, 'Aprobado')} style={{ background: '#52c41a', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}>
-                            Aprobar
-                          </button>
-                          <button onClick={() => evaluarPrestamo(item.id_prestamo, 'Rechazado')} style={{ background: '#ff4d4f', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer' }}>
-                            Rechazar
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <h3 style={{color: '#111827', marginBottom: '15px'}}>Cartera Global de Solicitudes</h3>
+          <div className="table-container">
+            <table className="modern-table">
+              <thead>
+                <tr><th>ID</th><th>Cliente</th><th>Monto</th><th>Plazo</th><th>Estado</th><th>Acción</th></tr>
+              </thead>
+              <tbody>
+                {carteraTotal.length === 0 ? (
+                  <tr><td colSpan="6" style={{textAlign: 'center', color: '#6b7280'}}>Cartera vacía.</td></tr>
+                ) : (
+                  carteraTotal.map((item) => (
+                    <tr key={item.id_prestamo}>
+                      <td>#{item.id_prestamo}</td>
+                      <td>{item.email_cliente}</td>
+                      <td>${Number(item.monto).toLocaleString()}</td>
+                      <td>{item.plazo_meses} meses</td>
+                      <td><span className={`badge badge-${item.estado}`}>{item.estado}</span></td>
+                      <td>
+                        {item.estado === 'Pendiente' && (
+                          <div className="action-buttons">
+                            <button onClick={() => evaluarPrestamo(item.id_prestamo, 'Aprobado')} className="btn-action btn-approve">Aprobar</button>
+                            <button onClick={() => evaluarPrestamo(item.id_prestamo, 'Rechazado')} className="btn-action btn-reject">Rechazar</button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
